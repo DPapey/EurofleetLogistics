@@ -1,0 +1,6 @@
+@EurofleetLogisticsApp_HostAddress = http://localhost:5087
+
+GET {{EurofleetLogisticsApp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
