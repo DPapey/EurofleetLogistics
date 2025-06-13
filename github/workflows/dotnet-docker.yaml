@@ -1,0 +1,56 @@
+name: .NET Build and Docker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'EurofleetLogisticsApp/**'
+      - 'Dockerfile'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'EurofleetLogisticsApp/**'
+      - 'Dockerfile'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    #runs-on: ${{ matrix.os }}
+    
+    # Scalability with Matrix
+    # strategy:
+    #   matrix:
+    #     dotnet-version: [ '8.0.x', '9.0.x' ]
+    #     os: [ ubuntu-latest, windows-latest ]
+    #   fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4.2.3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4.3.1
+        with:
+          dotnet-version: "9.0.x"
+          # dotnet-version: ${{ matrix.dotnet.version }}
+
+      - name: Restore Dependencies
+        run: dotnet restore EurofleetLogisticsApp/EurofleetLogisticsApp.csproj
+
+      - name: Build
+        run: dotnet build --no-restore EurofleetLogisticsApp/EurofleetLogisticsApp.csproj
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+
+      - name: Build Docker Image
+        run: docker build -t eurofleetlogisticsapp:latest .
